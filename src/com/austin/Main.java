@@ -18,6 +18,7 @@ public class Main {
 
         // master list of all jobs
         ArrayList<job> allJobs = new ArrayList<job>();
+        int[] calculatedPossibilities;
 
         // Add example data
         allJobs.add(a);
@@ -29,8 +30,16 @@ public class Main {
         allJobs.add(h);
         allJobs.add(j);
 
+        calculatedPossibilities = new int[allJobs.size()]; // init to size of allJobs
+
+        // Set all elements to -1 to symbolize them being "empty"
+        for(int i = 0; i < calculatedPossibilities.length; i++){
+            calculatedPossibilities[i] = -1;
+        }
+
+
         // Hold value of last best job
-        int tmp = ComputeOpt(allJobs, 6);
+        int tmp = ComputeOpt(allJobs, calculatedPossibilities, 6);
 
         // Add 1 for human-readable output. Shift starting number from 0 to 1
         System.out.println(tmp + 1);
@@ -81,16 +90,25 @@ public class Main {
 
     //
     // Calculates optimal path/schedule. Algo/pseudo code from power point slides implemented into code
-    public static int ComputeOpt(ArrayList<job> masterList, int j){
+    public static int ComputeOpt(ArrayList<job> masterList, int[] calculatedPossibilities, int j){
         // If job is zero, return 0. Base case
         if(j <= 0){
             return 0;
-        }
-        // selected current job
-        job current = masterList.get(j);
 
-        // Return either j or j-1, which ever has the largest value. Uses recursion.
-        return max(current.getWeight() + ComputeOpt(masterList, p(masterList, j)), ComputeOpt(masterList, j-1));
+        }else if(calculatedPossibilities[j] != -1){
+            return calculatedPossibilities[j];  // Calculated value already exists, return it
+
+        }else{
+            // selected current job
+            job current = masterList.get(j);
+
+            // Return either j or j-1, which ever has the largest value. Uses recursion.
+            int retVal = max(current.getWeight() + ComputeOpt(masterList, calculatedPossibilities, p(masterList, j)), ComputeOpt(masterList, calculatedPossibilities, j-1));
+            calculatedPossibilities[j] = retVal;    // Save calculated value for future use to avoid recalculations.
+
+            return retVal;  // return value
+        }
+
     }
 
     // Returns largest of two values, if matching secondVal is returned
