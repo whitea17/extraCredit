@@ -1,35 +1,37 @@
 package com.austin;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
-
-        // Example data
-        job a = new job(3, 0, 3);
-        job b = new job(2, 1, 4);
-        job c = new job(4, 0, 5);
-        job d = new job(1, 3, 6);
-        job e = new job(2, 4, 7);
-        job g = new job(5, 3, 9);
-        job h = new job(2, 5, 10);
-        job j = new job(1, 8, 10);
-
         // master list of all jobs
         ArrayList<job> allJobs = new ArrayList<job>();
         int[] calculatedPossibilities;
 
-        // Add example data
-        allJobs.add(a);
-        allJobs.add(b);
-        allJobs.add(c);
-        allJobs.add(d);
-        allJobs.add(e);
-        allJobs.add(g);
-        allJobs.add(h);
-        allJobs.add(j);
+        if(args.length != 1){
+            System.out.println("Please specify a file in cmd arguments. Exiting...");
+            System.exit(1);
+        }
 
+        try {
+            // Set up file object to read from
+
+            File inputData = new File(args[0]); // Get file name from cmd args
+            Scanner readLines = new Scanner(inputData); // setup for reading indiv. lines
+
+            // Read every line
+            while (readLines.hasNextLine()) {
+                parseValidateAndAddToList(allJobs, readLines.nextLine());
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Failed to open file. Exiting....");
+            e.printStackTrace();
+        }
         calculatedPossibilities = new int[allJobs.size()]; // init to size of allJobs
 
         // Set all elements to -1 to symbolize them being "empty"
@@ -39,32 +41,33 @@ public class Main {
 
 
         // Hold value of last best job
-        int tmp = ComputeOpt(allJobs, calculatedPossibilities, 6);
+        int lastJob = ComputeOpt(allJobs, calculatedPossibilities, allJobs.size() - 1);
 
         // Add 1 for human-readable output. Shift starting number from 0 to 1
-        System.out.println(tmp + 1);
+        System.out.println(lastJob + 1);
 
         //
         // Calculate total weight of best selected schedule
         //
-        int sum = 0;
-        int i = tmp;
+        int totalWeight = 0;
+        int i = lastJob;
 
         while(i != 0){
-            sum += allJobs.get(i).getWeight();
+            totalWeight += allJobs.get(i).getWeight();
             i = allJobs.get(i).getNextBestJob();
         }
 
         if(i == 0){
-            sum += allJobs.get(i).getWeight();
+            totalWeight += allJobs.get(i).getWeight();
         }
+
 
         //
         // End of calculating weight
         //
 
         // Print out total weight
-        System.out.println(sum);
+        System.out.println(totalWeight);
 
     }
 
@@ -111,6 +114,42 @@ public class Main {
 
     }
 
+    // Parse and validate each line and add it to master list of jobs. If parsing or validation fails, exit program.
+    public static void parseValidateAndAddToList(ArrayList<job> masterList, String lineToParse){
+        String[] items = lineToParse.split(","); // Break line up via commas
+
+        // Make sure there are three sections
+        if(items.length != 3){
+            // Don't fail on blank lines
+            if(lineToParse.isBlank()){
+                return;
+            }
+
+            // Failed to parse line
+            System.out.println("Failed to parse: " + lineToParse);
+            System.out.println("Exiting...");
+            System.exit(1);
+        }
+
+        // Wraps conversion of string to numbers in try/catch. If it isnt a number the program will exit with fail
+        try {
+            // Convert strings to their respective numbers
+            int w = Integer.parseInt(items[2]); // Weight
+            int s = Integer.parseInt(items[0]); // Start
+            int e = Integer.parseInt(items[1]); // End
+
+            job newJob = new job(w, s, e);  // Create new job
+            masterList.add(newJob); // Add new job to list of jobs
+
+        }catch (Exception NumberFormatException){
+            // Failed to parse line
+            System.out.println("Failed to parse: " + lineToParse);
+            System.out.println("Exiting...");
+            System.exit(1);
+        }
+
+    }
+
     // Returns largest of two values, if matching secondVal is returned
     public static int max(int firstVal, int secondVal){
         if(firstVal > secondVal){
@@ -118,4 +157,5 @@ public class Main {
         }
         return secondVal;
     }
+
 }
