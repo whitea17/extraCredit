@@ -62,7 +62,7 @@ public class Main {
 
         // Follow each job to it's next best job until no job exists
         while(jobIter != -1){
-            System.out.println("         Job: " + (jobIter + 1)); // Print current job, plus shift number scale to starting at 1
+            System.out.println("              " + currentJob.toString()); // Printing job information but not index itself. The index is arbitrary. The index is from a sorted list and not relational to input file
 
             // Change iterator to next job index
             jobIter = currentJob.getNextBestJob();
@@ -131,7 +131,7 @@ public class Main {
         // Make sure there are three sections
         if(items.length != 3){
             // Don't fail on blank lines
-            if(lineToParse.isBlank()){
+            if(lineToParse.isEmpty()){
                 return;
             }
 
