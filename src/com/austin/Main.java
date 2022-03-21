@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
-
     public static void main(String[] args) {
         // master list of all jobs
         ArrayList<job> allJobs = new ArrayList<job>();
-        int[] calculatedPossibilities;
+        int[] calculatedPossibilities;      // Holds calculated values to avoid expensive recalculations
 
+        // Make sure file argment is present
         if(args.length != 1){
             System.out.println("Please specify a file in cmd arguments. Exiting...");
             System.exit(1);
@@ -19,7 +19,6 @@ public class Main {
 
         try {
             // Set up file object to read from
-
             File inputData = new File(args[0]); // Get file name from cmd args
             Scanner readLines = new Scanner(inputData); // setup for reading indiv. lines
 
@@ -34,40 +33,46 @@ public class Main {
         }
         calculatedPossibilities = new int[allJobs.size()]; // init to size of allJobs
 
-        // Set all elements to -1 to symbolize them being "empty"
+        // Set all elements to -1 to symbolize them being "empty" except first two, special case
         for(int i = 0; i < calculatedPossibilities.length; i++){
-            calculatedPossibilities[i] = -1;
+            if(i <= 1){
+                calculatedPossibilities[i] = 0;
+            }else {
+                calculatedPossibilities[i] = -1;
+            }
         }
 
 
         // Hold value of last best job
-        int lastJob = ComputeOpt(allJobs, calculatedPossibilities, allJobs.size() - 1);
+        int largestVal = 0; // Holds index of last job for best schedule
+        int bestWeight = ComputeOpt(allJobs, calculatedPossibilities, allJobs.size() - 1);
 
-        // Add 1 for human-readable output. Shift starting number from 0 to 1
-        System.out.println(lastJob + 1);
-
-        //
-        // Calculate total weight of best selected schedule
-        //
-        int totalWeight = 0;
-        int i = lastJob;
-
-        while(i != 0){
-            totalWeight += allJobs.get(i).getWeight();
-            i = allJobs.get(i).getNextBestJob();
+        System.out.println("Best Total Weight:" + bestWeight);
+        // Finds index of last job for best schedule
+        for(int i = 0; i < calculatedPossibilities.length; i++){
+            if(calculatedPossibilities[largestVal] < calculatedPossibilities[i] ){
+                largestVal = i;
+            }
         }
 
-        if(i == 0){
-            totalWeight += allJobs.get(i).getWeight();
+        // Prints out best weighted job schedule
+        System.out.println("Job Schedule: ");
+        job currentJob = allJobs.get(largestVal);
+        int jobIter = largestVal;
+
+        // Follow each job to it's next best job until no job exists
+        while(jobIter != -1){
+            System.out.println("         Job: " + (jobIter + 1)); // Print current job, plus shift number scale to starting at 1
+
+            // Change iterator to next job index
+            jobIter = currentJob.getNextBestJob();
+
+            // Safeguard bounds before getting next best job from iterator
+            if(jobIter != -1){
+                currentJob = allJobs.get(jobIter);
+            }
         }
 
-
-        //
-        // End of calculating weight
-        //
-
-        // Print out total weight
-        System.out.println(totalWeight);
 
     }
 
@@ -87,26 +92,31 @@ public class Main {
                     return i;
                 }
             }
+
         } // If value has already been calculated, avoid expensive calculation steps and simply return the value
+
         return masterList.get(j).getNextBestJob();
     }
 
     //
     // Calculates optimal path/schedule. Algo/pseudo code from power point slides implemented into code
     public static int ComputeOpt(ArrayList<job> masterList, int[] calculatedPossibilities, int j){
-        // If job is zero, return 0. Base case
-        if(j <= 0){
-            return 0;
+        // If job is zero or one return weight (special case), if below zero return 0
+        if(j < 0){
+            return 0; // No job exists here
+        }else if(j == 0 || j == 1){
+            return masterList.get(j).getWeight();
 
         }else if(calculatedPossibilities[j] != -1){
             return calculatedPossibilities[j];  // Calculated value already exists, return it
-
         }else{
             // selected current job
             job current = masterList.get(j);
+            int with = current.getWeight() + ComputeOpt(masterList, calculatedPossibilities, p(masterList, j)); // Calc weight with current job included
+            int without = ComputeOpt(masterList, calculatedPossibilities, j-1);                              // Calc weight withOUT current job included
 
-            // Return either j or j-1, which ever has the largest value. Uses recursion.
-            int retVal = max(current.getWeight() + ComputeOpt(masterList, calculatedPossibilities, p(masterList, j)), ComputeOpt(masterList, calculatedPossibilities, j-1));
+            // Return which ever has best weight, default to without if tie
+            int retVal = max(with, without);
             calculatedPossibilities[j] = retVal;    // Save calculated value for future use to avoid recalculations.
 
             return retVal;  // return value
