@@ -34,6 +34,6 @@ From the root of the repo, after following the build instructions, run: `java -c
 
 I largest struggle was understanding the symbols in the textbook and power point slides. For example, from your power point slides:
 
-![exampleDiff](/home/mountain/IdeaProjects/extraCredit/screenshots/exampleDiff.png)
+![exampleDiff](./screenshots/exampleDiff.png)
 
 Once I was able to understand this part, the rest was much easier.
